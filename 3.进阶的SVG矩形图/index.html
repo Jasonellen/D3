@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="../d3.min.js"></script>
+</head>
+<body>
+
+
+
+<style>
+    .chart rect {
+        fill: steelblue;
+    }
+
+    .chart text {
+        fill: white;
+        font: 10px sans-serif;
+        text-anchor: middle;
+    }
+</style>
+
+<svg class="chart"></svg>
+
+<script>
+
+    var width = 600,
+        height = 400;
+
+    //设置Y轴方向
+    var y = d3.scaleLinear()
+            .range([height, 0]); //设置data数值是取反的，40px占90%,360px占10%；
+
+    //设置X轴方向
+
+    var x = d3.scaleOrdinal()
+        .range([0, width]);
+
+    var chart = d3.select(".chart")
+            .attr("width", width)
+            .attr("height", height)
+
+    //加载数据(同级)
+    d3.tsv('data.tsv', type, function(error, data) {
+        x.domain(data.map(function(d) { return d.name; }));
+        //设置每组值的高度，根据range等比例划分
+        y.domain([0, d3.max(data, function(d) { return d.value; })]);
+        //设置每组数据宽度
+        var barWidth = width / data.length;
+
+        var bar = chart.selectAll("g")
+            .data(data)
+            .enter().append("g")
+            .attr("transform", function(d, i) { return "translate(" + i * barWidth + ",0)"; });
+
+        bar.append("rect")
+            .attr("y", function(d) { return y(d.value); }) //设置矩形起点 40px就是从360px开始
+            .attr("height", function(d) { return height - y(d.value); }) //实际作图还是40px
+            .attr("width", barWidth - 1);
+
+        bar.append("text")
+            .attr("x", barWidth / 2)
+            .attr("y", function(d) { return y(d.value) + 10; })
+            .attr("dy", ".35em")
+            .text(function(d) { return d.value; });
+    });
+
+    function type(d) {
+        d.value = +d.value; // coerce to number
+        return d;
+    }
+
+</script>
+</body>
+</html>

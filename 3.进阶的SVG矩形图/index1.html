@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+
+
+
+<style>
+    .bar {
+        fill: steelblue;
+    }
+    .bar_max{
+        fill:green;
+    }
+    .axis text {
+        font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    .x.axis path {
+        /*display: none;  影藏水平线*/
+    }
+</style>
+
+<svg class="chart"></svg>
+<script src="../d3.min.js" charset="utf-8"></script>
+
+<script>
+
+    var margin = {top: 20, right: 20, bottom: 20, left: 20},
+        width = 600 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+
+    var x = d3.scaleBand()
+            .rangeRound([0, width])
+            .padding(0.1);
+
+    var y = d3.scaleLinear()
+            .range([height, 0]);
+
+    var xAxis = d3.axisBottom()
+            .scale(x) //水平区间缩放
+
+    var yAxis = d3.axisLeft()
+            .scale(y)
+
+
+    var chart = d3.select(".chart")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    d3.tsv("data.tsv", type, function(error, data) {
+        x.domain(data.map(function (d) {
+            return d.name;
+        }));
+        y.domain([0, d3.max(data, function (d) {
+            return d.value;
+        })]);
+        var arr = []  //这里存所有的数组，后面做最大值筛选
+        data.map(function(item){
+            arr.push(item.value)
+        })
+
+        chart.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        chart.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+
+        chart.selectAll(".bar")
+            .data(data)
+            .enter().append("rect")
+            .attr("class", function (d) {
+                return d.value == Math.max.apply(null,arr) ? "bar_max" : "bar"
+            })
+            .attr("x", function(d) { return x(d.name); })
+            .attr("y", function(d) { return y(d.value); })
+            .attr("height", function(d) { return height - y(d.value); })
+            .attr("width", x.bandwidth());
+    });
+
+    function type(d) {
+        d.value = +d.value; // coerce to number
+        return d;
+    }
+
+</script>
+</body>
+</html>
