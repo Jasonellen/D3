@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<table>
+  <thead>
+    <tr><td>  A</td><td>  B</td><td>  C</td><td>  D</td></tr>
+  </thead>
+  <tbody>
+    <tr><td>  0</td><td>  1</td><td>  2</td><td>  3</td></tr>
+    <tr><td>  4</td><td>  5</td><td>  6</td><td>  7</td></tr>
+    <tr><td>  8</td><td>  9</td><td> 10</td><td> 11</td></tr>
+    <tr><td> 12</td><td> 13</td><td> 14</td><td> 15</td></tr>
+  </tbody>
+</table>
+<svg width="960" height="500"></svg>
+<script src="d3.min.js"></script>
+<script>
+//选择元素并绑定数据
+{/*
+var td = d3.selectAll("tbody").selectAll("td")
+      .data([0,1,2,3,4,5,6,7])
+      console.log(td) //enter进入8个， exit退出8个(共16个)，共1组，_parents是tbody
+td.style("color", function(d, i) { console.log(d,i); return i ? null : "red"; }); //第一个元素变红色
+*/}
+
+{/*
+var td = d3.selectAll("tbody tr").selectAll("td")
+      .data([0,1,2,3,4,5,6,7])
+      console.log(td) //enter进入8个， exit退出8个(共16个)，共4组，每组数据都是[0，1，2，3]，_parents是tr
+td.style("color", function(d, i) { console.log(d,i); return i ? null : "red"; }); //每组的第一个元素变红色
+*/}
+
+var td = d3.selectAll("tbody tr")
+    .data([ [1,2,3,4],[5,6,7,9],[5,6,7,10],[5,6,7,11]])
+    .selectAll("td")
+    .data(function(d, i) { return d; });
+ console.log(td) //enter进入8个， exit退出8个(共16个)，共4组，每组数据都是按数组顺序，_parents是tr
+td.style("color", function(d, i) { 
+  console.log(d,i);  //分别的每一个tr数组中每一个值
+  return i ? null : "red";   //每组的第一个元素变红色
+});
+
+
+
+
+//select和selectAll
+//select和selectAll之间有一个重要区别：select 保留现有的分组(selections)，而selectAll 创建一个新的分组。
+
+var td = d3.selectAll("tbody tr").select("td")
+          .enter().append("div") // success
+
+console.log(td,1)  //返回的是tr  _parents 是html
+
+var td = d3.selectAll("tbody tr").selectAll("td");
+        console.log(td,2) //返回的是td  _parents 是tr
+
+var td = d3.select("tbody tr").selectAll("td");
+        console.log(td,3) //返回的是td  _parents 是tr
+
+//关于元素操作
+
+{/*
+
+d3.selectAll("table tr") 
+    .data(matrix) //给选择的元素tr绑定数据
+  .enter().append("tr"); // error!  往返回值_parents(根元素html)中添加元素
+//将发生错误是因为默认父节点是文档的root（html）元素，并且您不能将tr元素直接添加到根。而是在执行数据连接之前选择一个父级：
+
+d3.select("table").selectAll("tr")  
+    .data(matrix)   //给选择的元素tr绑定数据
+  .enter().append("tr"); // success    往返回值_parents(table)中添加元素
+
+*/}
+
+</script>

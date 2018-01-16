@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+  .links line {
+    stroke: #999;
+    stroke-opacity: 0.6;
+  }
+
+  .nodes circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+  }
+
+</style>
+<svg width="960" height="600"></svg>
+<script src="../d3.min.js"></script>
+<script>
+
+  var svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height");
+
+  var color = d3.scaleOrdinal(d3.schemeCategory10);
+  //  console.log(color)
+
+  //创建力模拟器
+  var simulation = d3.forceSimulation()
+        .force("link", d3.forceLink().id(function (d) {
+          return d.id;
+        }))   //指的是link与node关联的关键字，这里是通过node中的id属性关联
+        .force("charge", d3.forceManyBody().strength(-34) ) //取得或者设置电荷强度。默认-30即离散30
+        .force("collision", d3.forceCollide(-2))     //控制相邻2点的排斥力度 正数是不能靠近的距离,负数是心跳?
+        .force("center", d3.forceCenter(width / 2, height / 2)); //居中显示
+
+  d3.json("miserables.json", function (error, data) {
+    if (error) throw error;
+
+    var link = svg.append("g")
+          .attr("class", "links")
+          .selectAll("line")
+          .data(data.links)
+          .enter().append("line")
+          .attr("stroke-width", function (d) {
+            return Math.sqrt(d.value);
+          });
+
+    var node = svg.append("g")
+          .attr("class", "nodes")
+          .selectAll("circle")
+          .data(data.nodes)
+          .enter().append("circle")
+          .attr("r", 5)
+          .attr("fill", function (d) {
+            return color(d.group);
+          })
+          .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+//
+    simulation
+          .nodes(data.nodes)  //绑定节点数据
+          .on("tick", ticked);  //节点加入模拟器中,执行回调函数
+
+    simulation.force("link")
+          .links(data.links); //绑定链接数据
+    //link   中source是原始点node，target连接属性的node   ,link的一共有三个属性source(起点)，target(目标终点，index
+
+
+    function ticked() {
+      node
+            .attr("cx", function (d) {
+              return d.x;
+            })
+            .attr("cy", function (d) {
+              return d.y;
+            });
+      //链接线创建起始点和终点
+      link
+            .attr("x1", function (d) {
+              return d.source.x;  //其实数据所在的x坐标
+            })
+            .attr("y1", function (d) {
+              return d.source.y;
+            })
+            .attr("x2", function (d) {
+              return d.target.x;
+            })
+            .attr("y2", function (d) {
+              return d.target.y;
+            });
+    }
+  });
+
+  function dragstarted(d) {
+    if (!d3.event.active) simulation.alphaTarget(0.5).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+    console.log(d, d.fx)
+    console.log(d3.event)
+  }
+
+  function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+  }
+
+  function dragended(d) {
+    if (!d3.event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+</script>
